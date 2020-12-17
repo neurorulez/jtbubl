@@ -78,7 +78,7 @@ module jtbubl_main(
 );
 
 reg  [ 7:0] main_din, sub_din;
-wire [ 7:0] ram2sub, main_dout, sub_dout,
+wire [ 7:0] ram2sub, main_dout, sub_dout, comm2main, comm2mcu,
             p1_in,
             p1_out, p2_out, p3_out, p4_out;
 reg  [ 7:0] p3_in, rammcu_din;
@@ -103,11 +103,6 @@ reg  [ 7:0] wdog_cnt, int_vector;
 reg         last_VBL;
 
 wire [ 7:0] work2main_dout, work2sub_dout;
-
-reg  [ 7:0] comm_din, comm2main, comm2mcu;
-reg  [ 9:0] comm_addr;
-reg         comm_we;
-wire [ 7:0] comm_dout;
 
 reg         lwaitn, swaitn;
 wire        main_halt_n;
@@ -423,7 +418,7 @@ jtframe_ff u_mcu2main (
     // it can come from P1[6] or from VBL
     .sigedge( tokio ? VBL_gated : p1_out[6] )
 );
-
+/*
 always @(posedge clk24) begin
     if( cen12 ) begin
         if(cen6) begin
@@ -439,15 +434,21 @@ always @(posedge clk24) begin
         end
     end
 end
-
+*/
 // Time shared
-jtframe_ram #(.aw(10)) u_comm(
-    .clk    ( clk24            ),
-    .cen    ( 1'b1             ),
-    .data   ( comm_din         ),
-    .addr   ( comm_addr        ),
-    .we     ( comm_we          ),
-    .q      ( comm_dout        )
+jtframe_dual_ram #(.aw(10)) u_comm(
+    .clk0   ( clk24              ),
+    .clk1   ( clk24              ),
+    // Main CPU
+    .addr0  ( main_addr[9:0]     ),
+    .data0  ( main_dout          ),
+    .we0    ( mcram_we           ),
+    .q0     ( comm2main          ),
+    // MCU
+    .addr1  ( mcu_bus[9:0]       ),
+    .data1  ( rammcu_din         ),
+    .we1    ( rammcu_we          ),
+    .q1     ( comm2mcu           )
 );
 
 // Bubble Bobble handles the input ports via the MCU
