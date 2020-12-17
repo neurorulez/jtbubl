@@ -316,7 +316,7 @@ jtframe_z80 u_maincpu(
     .rst_n    ( main_rst_n     ),
     .clk      ( clk24          ),
     .cen      ( cen_main       ),
-    .wait_n   ( main_wait_n    ),
+    .wait_n   ( 1'b1           ),
     .int_n    ( main_int_n     ),
     .nmi_n    ( 1'b1           ),
     .busrq_n  ( 1'b1           ),
@@ -333,7 +333,7 @@ jtframe_z80 u_maincpu(
     .dout     ( main_dout      )
 );
 
-jtframe_z80wait #(.devcnt(1)) u_mainwait(
+jtframe_z80wait #(.devcnt(2)) u_mainwait(
     .rst_n    ( main_rst_n      ),
     .clk      ( clk24           ),
     .start    ( cpu_start       ),
@@ -344,7 +344,7 @@ jtframe_z80wait #(.devcnt(1)) u_mainwait(
     .mreq_n   ( main_mreq_n     ),
     .iorq_n   ( main_iorq_n     ),
     .busak_n  ( 1'b1            ),
-    .dev_busy ( vram_cs & h1    ),
+    .dev_busy ( { vram_cs & h1, sde & main_work_cs }    ),
     // manage access to ROM data from SDRAM
     .rom_cs   ( main_rom_cs     ),
     .rom_ok   ( main_rom_ok     )
@@ -359,7 +359,7 @@ jtframe_z80 u_subcpu(
     .rst_n    ( sub_rst_n      ),
     .clk      ( clk24          ),
     .cen      ( cen_sub        ),
-    .wait_n   ( sub_wait_n     ),
+    .wait_n   ( 1'b1           ),
     .int_n    ( sub_int_n      ),
     .nmi_n    ( ~main2sub_nmi  ),
     .busrq_n  ( 1'b1           ),
@@ -387,7 +387,7 @@ jtframe_z80wait #(.devcnt(1)) u_subwait(
     .mreq_n   ( sub_mreq_n      ),
     .iorq_n   ( sub_iorq_n      ),
     .busak_n  ( 1'b1            ),
-    .dev_busy ( 1'b0            ),
+    .dev_busy ( (main_work_cs & ~sde) & sub_work_cs ),
     // manage access to ROM data from SDRAM
     .rom_cs   ( sub_rom_cs      ),
     .rom_ok   ( sub_rom_ok      )
