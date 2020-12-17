@@ -87,7 +87,7 @@ reg         h1;
 wire [11:0] mcu_bus;
 wire [15:0] main_addr, sub_addr, mcu_addr;
 wire        main_mreq_n, main_iorq_n, main_rdn, main_wrn, main_rfsh_n;
-wire        sub_mreq_n,  sub_iorq_n,  sub_rd_n,  sub_wrn;
+wire        sub_mreq_n,  sub_iorq_n,  sub_rd_n,  sub_wrn, sub_halt_n;
 reg         rammcu_we, rammcu_cs;
 reg         main_work_cs, mcram_cs, // shared memories
             tres_cs,  // watchdog reset
@@ -331,12 +331,17 @@ jtframe_z80 u_maincpu(
     .dout     ( main_dout      )
 );
 
-jtframe_rom_wait u_mainwait(
+jtframe_z80wait #(.devcnt(1)) u_mainwait(
     .rst_n    ( main_rst_n      ),
     .clk      ( clk24           ),
     .cen_in   (                 ),
     .cen_out  (                 ),
     .gate     ( lrom_wait_n     ),
+    // cycle recovery
+    .mreq_n   ( main_mreq_n     ),
+    .iorq_n   ( main_iorq_n     ),
+    .busak_n  ( 1'b1            ),
+    .dev_busy ( 1'b0            ),
     // manage access to ROM data from SDRAM
     .rom_cs   ( main_rom_cs     ),
     .rom_ok   ( main_rom_ok     )
@@ -359,19 +364,24 @@ jtframe_z80 u_subcpu(
     .rd_n     ( sub_rd_n       ),
     .wr_n     ( sub_wrn        ),
     .rfsh_n   (                ),
-    .halt_n   (                ),
+    .halt_n   ( sub_halt_n     ),
     .busak_n  (                ),
     .A        ( sub_addr       ),
     .din      ( sub_din        ),
     .dout     ( sub_dout       )
 );
 
-jtframe_rom_wait u_subwait(
+jtframe_z80wait #(.devcnt(1)) u_subwait(
     .rst_n    ( sub_rst_n       ),
     .clk      ( clk24           ),
     .cen_in   (                 ),
     .cen_out  (                 ),
     .gate     ( srom_wait_n     ),
+    // cycle recovery
+    .mreq_n   ( sub_mreq_n      ),
+    .iorq_n   ( sub_iorq_n      ),
+    .busak_n  ( 1'b1            ),
+    .dev_busy ( 1'b0            ),
     // manage access to ROM data from SDRAM
     .rom_cs   ( sub_rom_cs      ),
     .rom_ok   ( sub_rom_ok      )
@@ -458,24 +468,25 @@ always @(posedge clk24) begin
     endcase
 end
 
-reg [3:0] clrcnt;
+reg [5:0] clrcnt;
 reg       last_sub_int_n;
 reg       mcuirq;
 
 wire      cen_mcu = cen4;
+wire      cen_mcu_eff;      // effective MCU gated clock after ROM CS blind time
 
 always @(posedge clk24) begin
     if( mcu_rst ) begin
         clrcnt <= 4'd0;
         last_sub_int_n <= 1;
         mcuirq <= 0;
-    end else if(cen_mcu) begin
+    end else if(cen_mcu_eff) begin
         last_sub_int_n <= sub_int_n;
         if( last_sub_int_n && !sub_int_n ) begin
             clrcnt <= 4'd0;
             mcuirq <= 1;
         end else if(mcuirq) begin
-            clrcnt<=clrcnt+4'd1;
+            clrcnt<=clrcnt+1'd1;
             if(&clrcnt) mcuirq<=0;
         end
     end
@@ -492,7 +503,7 @@ always @(posedge clk24) begin
         last_rammcu_clk <= 1;
         rammcu_din      <= 8'd0;
         int_vector      <= 8'h2e;
-    end else if(cen_mcu) begin
+    end else if(cen_mcu_eff) begin
         last_rammcu_clk <= rammcu_clk;
         if( mcu_posedge ) begin
             if( mcu_bus[11:10]==2'b11 ) begin
@@ -515,7 +526,8 @@ jtframe_6801mcu #(.MAXPORT(7)) u_mcu (
     .rst        ( mcu_rst       ),
     //.rst( rst ), // for quick sims
     .clk        ( clk24         ),
-    .cen        ( cen_mcu       ),  // this should be cen4, but let's start easy
+    .cen        ( cen_mcu       ),
+    .wait_cen   ( cen_mcu_eff   ),
     .wrn        (               ),
     .vma        ( mcu_vma       ),
     .addr       ( mcu_addr      ),

@@ -191,3 +191,13 @@ bubl          	sidi	20200815	1	PASS	cde9897	0804378
 bubl          	mister	20200815	1	PASS	cde9897	0804378
 bubl          	mister	20200816	1	PASS	cde9897	0804378
 bubl          	mist	20200830	1	PASS	cde9897	77fb4ce
+bubl          	mist	20200830	1	PASS	c29dfa9	77fb4ce
+bubl          	mist	20200830	1	PASS	c29dfa9	77fb4ce
+bubl          	mist	20201217	1	PASS	c29dfa9	0302bb5
+bubl          	mist	20201217	1	PASS	c29dfa9	0302bb5
+bubl          	mist	20201217	1	PASS	c29dfa9	0302bb5
+bubl          	mist	20201217	1	FAIL	c29dfa9	0302bb5
+bubl          	mist	20201217	1	FAIL	c29dfa9	0302bb5
+bubl          	mist	20201217	1	FAIL	c29dfa9	0302bb5
+bubl          	mist	20201217	1	FAIL	c29dfa9	0302bb5
+bubl          	mist	20201217	1	PASS	c29dfa9	0302bb5
