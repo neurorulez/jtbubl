@@ -481,7 +481,7 @@ reg [5:0] clrcnt;
 reg       last_sub_int_n;
 reg       mcuirq;
 
-wire      cen_mcu = cen4;
+wire      cen_mcu = cen6; // cen4
 wire      cen_mcu_eff;      // effective MCU gated clock after ROM CS blind time
 
 always @(posedge clk24) begin
@@ -489,7 +489,7 @@ always @(posedge clk24) begin
         clrcnt <= 4'd0;
         last_sub_int_n <= 1;
         mcuirq <= 0;
-    end else if(cen_mcu_eff) begin
+    end else if(cen_mcu) begin
         last_sub_int_n <= sub_int_n;
         if( last_sub_int_n && !sub_int_n ) begin
             clrcnt <= 4'd0;
@@ -512,7 +512,7 @@ always @(posedge clk24) begin
         last_rammcu_clk <= 1;
         rammcu_din      <= 8'd0;
         int_vector      <= 8'h2e;
-    end else if(cen_mcu_eff) begin
+    end else if(cen_mcu) begin
         last_rammcu_clk <= rammcu_clk;
         if( mcu_posedge ) begin
             if( mcu_bus[11:10]==2'b11 ) begin
