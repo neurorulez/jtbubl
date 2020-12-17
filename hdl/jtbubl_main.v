@@ -264,7 +264,7 @@ jtframe_dual_ram #(.aw(13)) u_work(
     .clk1   ( clk24           ),
     .data0  ( main_dout       ),
     .addr0  ( main_addr[12:0] ),
-    .we0    ( ~main_wrn & main_work_cs      ),
+    .we0    ( ~main_wrn & lde      ),
     .q0     ( work2main_dout  ),
     // Sub CPU
     .data1  ( sub_dout        ),
@@ -346,7 +346,7 @@ jtframe_z80wait #(.devcnt(2)) u_mainwait(
     .mreq_n   ( main_mreq_n     ),
     .iorq_n   ( main_iorq_n     ),
     .busak_n  ( 1'b1            ),
-    .dev_busy ( { vram_cs & h1, sde & main_work_cs }    ),
+    .dev_busy ( { vram_cs & h1, sub_work_cs & main_work_cs }    ),
     // manage access to ROM data from SDRAM
     .rom_cs   ( main_rom_cs     ),
     .rom_ok   ( main_rom_ok     )
