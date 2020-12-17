@@ -310,10 +310,12 @@ always @(posedge clk24, negedge sub_rst_n) begin
     end
 end
 
+wire cen_main;
+
 jtframe_z80 u_maincpu(
     .rst_n    ( main_rst_n     ),
     .clk      ( clk24          ),
-    .cen      ( cen6           ),
+    .cen      ( cen_main       ),
     .wait_n   ( main_wait_n    ),
     .int_n    ( main_int_n     ),
     .nmi_n    ( 1'b1           ),
@@ -334,8 +336,8 @@ jtframe_z80 u_maincpu(
 jtframe_z80wait #(.devcnt(1)) u_mainwait(
     .rst_n    ( main_rst_n      ),
     .clk      ( clk24           ),
-    .cen_in   (                 ),
-    .cen_out  (                 ),
+    .cen_in   ( cen6            ),
+    .cen_out  ( cen_main        ),
     .gate     ( lrom_wait_n     ),
     // cycle recovery
     .mreq_n   ( main_mreq_n     ),
@@ -350,10 +352,12 @@ jtframe_z80wait #(.devcnt(1)) u_mainwait(
 /////////////////////////////////////////
 // Sub CPU
 
+wire cen_sub;
+
 jtframe_z80 u_subcpu(
     .rst_n    ( sub_rst_n      ),
     .clk      ( clk24          ),
-    .cen      ( cen6           ),
+    .cen      ( cen_sub        ),
     .wait_n   ( sub_wait_n     ),
     .int_n    ( sub_int_n      ),
     .nmi_n    ( ~main2sub_nmi  ),
@@ -374,8 +378,8 @@ jtframe_z80 u_subcpu(
 jtframe_z80wait #(.devcnt(1)) u_subwait(
     .rst_n    ( sub_rst_n       ),
     .clk      ( clk24           ),
-    .cen_in   (                 ),
-    .cen_out  (                 ),
+    .cen_in   ( cen6            ),
+    .cen_out  ( cen_sub         ),
     .gate     ( srom_wait_n     ),
     // cycle recovery
     .mreq_n   ( sub_mreq_n      ),
