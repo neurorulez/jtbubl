@@ -481,7 +481,7 @@ reg [5:0] clrcnt;
 reg       last_sub_int_n;
 reg       mcuirq;
 
-wire      cen_mcu = cen6; // cen4
+wire      cen_mcu = cen4;
 wire      cen_mcu_eff;      // effective MCU gated clock after ROM CS blind time
 
 always @(posedge clk24) begin
@@ -537,6 +537,7 @@ jtframe_6801mcu #(.MAXPORT(7)) u_mcu (
     .clk        ( clk24         ),
     .cen        ( cen_mcu       ),
     .wait_cen   ( cen_mcu_eff   ),
+    .start      ( cpu_start     ),
     .wrn        (               ),
     .vma        ( mcu_vma       ),
     .addr       ( mcu_addr      ),
