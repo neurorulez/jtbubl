@@ -102,10 +102,7 @@ reg         main_rst_n, sub_rst_n, mcu_rst;
 reg  [ 7:0] wdog_cnt, int_vector;
 reg         last_VBL;
 
-reg  [ 7:0] work_din;
-reg  [12:0] work_addr;
-reg         work_we;
-wire [ 7:0] work_dout;
+wire [ 7:0] work2main_dout, work2sub_dout;
 
 reg  [ 7:0] comm_din, comm2main, comm2mcu;
 reg  [ 9:0] comm_addr;
@@ -178,7 +175,7 @@ always @(posedge clk24) begin
         main_rom_cs ? main_rom_data : (
         vram_cs     ? vram_dout     : (
         pal_cs      ? pal_dout      : (
-        main_work_cs? work_dout     : (
+        main_work_cs? work2main_dout: (
         mcram_cs    ? (tokio ? 8'hbf : comm2main ) : (
         !main_iorq_n? int_vector    : (
         sound_cs    ? (
@@ -252,23 +249,28 @@ end
 // Sub CPU input mux
 always @(posedge clk24) begin
     sub_din <= sub_rom_cs  ? sub_rom_data : (
-               sub_work_cs ? work_dout : 8'hff );
+               sub_work_cs ? work2sub_dout : 8'hff );
 end
-
+/*
 always @(*) begin
     work_din = lde ? main_dout : sub_dout;
     work_we  = lde ? ~main_wrn : ~sub_wrn;
     work_addr= lde ? main_addr[12:0] : sub_addr[12:0];
 end
-
+*/
 // Time shared
-jtframe_ram #(.aw(13)) u_work(
-    .clk    ( clk24           ),
-    .cen    ( 1'b1            ),
-    .data   ( work_din        ),
-    .addr   ( work_addr       ),
-    .we     ( work_we         ),
-    .q      ( work_dout       )
+jtframe_dual_ram #(.aw(13)) u_work(
+    .clk0   ( clk24           ),
+    .clk1   ( clk24           ),
+    .data0  ( main_dout       ),
+    .addr0  ( main_addr[12:0] ),
+    .we0    ( ~main_wrn & main_work_cs      ),
+    .q0     ( work2main_dout  ),
+    // Sub CPU
+    .data1  ( sub_dout        ),
+    .addr1  ( sub_addr[12:0]  ),
+    .we1    ( ~sub_wrn & sub_work_cs       ),
+    .q1     ( work2sub_dout   )
 );
 
 /////////////////////////////////////////
