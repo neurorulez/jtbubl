@@ -149,6 +149,17 @@ always @(posedge clk) begin
         tokio <= ioctl_data==8'h7e; // single byte detection. Both tokyo and tokyob start like this
 end
 
+reg cpu_start;
+
+always @(posedge clk24, posedge rst) begin
+    if( rst ) begin
+        cpu_start <= 0;
+    end else begin
+        if( &{ main_ok, sub_ok, mcu_ok, snd_ok } ) cpu_start <= 1;
+    end
+end
+
+
 `ifndef NOMAIN
 jtbubl_main u_main(
     .rst            ( rst           ),
@@ -156,6 +167,7 @@ jtbubl_main u_main(
     .cen12          ( cen12         ),
     .cen6           ( cen6          ),
     .cen4           ( cen4          ),
+    .cpu_start      ( cpu_start     ),
     //.cpu_cen        ( cpu_cen       ),
 
     .tokio          ( tokio         ),
@@ -262,6 +274,7 @@ jtbubl_sound u_sound(
     //.rstn       ( snd_rstn      ),
     .rstn       ( 1'b1          ),
     .cen3       ( cen3          ),
+    .start      ( cpu_start     ),
 
     .tokio      ( tokio         ),
     // communication with main CPU
@@ -283,6 +296,7 @@ jtbubl_sound u_sound(
 );
 `else
 assign snd_cs   = 0;
+assign snd_ok   = 1;
 assign snd_addr = 15'd0;
 assign snd      = 16'd0;
 assign sample   = 0;
@@ -315,10 +329,10 @@ jtframe_rom #(
     .clk         ( clk           ),
     .vblank      ( ~LVBL         ),
 
-    .slot0_cs    ( main_cs       ),
-    .slot1_cs    ( sub_cs        ),
-    .slot2_cs    ( mcu_cs        ),
-    .slot3_cs    ( snd_cs        ), // unused
+    .slot0_cs    ( main_cs  | ~cpu_start     ),
+    .slot1_cs    ( sub_cs   | ~cpu_start     ),
+    .slot2_cs    ( mcu_cs   | ~cpu_start     ),
+    .slot3_cs    ( snd_cs   | ~cpu_start     ), // unused
     .slot4_cs    ( gfx_cs        ),
     .slot5_cs    ( 1'b0          ), // unused
     .slot6_cs    ( 1'b0          ),

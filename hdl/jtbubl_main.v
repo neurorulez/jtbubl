@@ -22,6 +22,7 @@ module jtbubl_main(
     input               cen12,
     input               cen6,
     input               cen4,
+    input               cpu_start,
 
     // game selection
     input               tokio,
@@ -77,8 +78,7 @@ module jtbubl_main(
 );
 
 reg  [ 7:0] main_din, sub_din;
-wire [ 7:0] ram2main, ram2sub, main_dout, sub_dout,
-            rammcu2main, rammcu2mcu,
+wire [ 7:0] ram2sub, main_dout, sub_dout,
             p1_in,
             p1_out, p2_out, p3_out, p4_out;
 reg  [ 7:0] p3_in, rammcu_din;
@@ -112,7 +112,6 @@ reg  [ 9:0] comm_addr;
 reg         comm_we;
 wire [ 7:0] comm_dout;
 
-wire        lrom_wait_n, srom_wait_n;
 reg         lwaitn, swaitn;
 wire        main_halt_n;
 reg         main_wait_n, sub_wait_n;
@@ -169,6 +168,7 @@ always @(*) begin
         main2sub_nmi= !main_mreq_n && main_addr[15: 8]==8'hFB && main_addr[7:6]==2'b00 && !main_wrn;
         tres_cs     = !main_mreq_n && main_addr[15: 8]==8'hFA && main_addr[7];
         mcram_cs    = !main_mreq_n && main_addr[15:10]==6'b1111_11; // FC
+        cabinet_cs  = 0;
     end
 end
 
@@ -288,8 +288,8 @@ end
 always @(*) begin
     lwaitn = ~( sde & main_work_cs );
     swaitn = ~( lde & sub_work_cs  );
-    main_wait_n = lwaitn & lrom_wait_n & ~(vram_cs&h1);
-    sub_wait_n  = swaitn & srom_wait_n;
+    main_wait_n = lwaitn;
+    sub_wait_n  = swaitn;
 end
 
 always @(posedge clk24, negedge main_rst_n) begin
@@ -336,14 +336,15 @@ jtframe_z80 u_maincpu(
 jtframe_z80wait #(.devcnt(1)) u_mainwait(
     .rst_n    ( main_rst_n      ),
     .clk      ( clk24           ),
+    .start    ( cpu_start       ),
     .cen_in   ( cen6            ),
     .cen_out  ( cen_main        ),
-    .gate     ( lrom_wait_n     ),
+    .gate     (                 ),
     // cycle recovery
     .mreq_n   ( main_mreq_n     ),
     .iorq_n   ( main_iorq_n     ),
     .busak_n  ( 1'b1            ),
-    .dev_busy ( 1'b0            ),
+    .dev_busy ( vram_cs & h1    ),
     // manage access to ROM data from SDRAM
     .rom_cs   ( main_rom_cs     ),
     .rom_ok   ( main_rom_ok     )
@@ -378,9 +379,10 @@ jtframe_z80 u_subcpu(
 jtframe_z80wait #(.devcnt(1)) u_subwait(
     .rst_n    ( sub_rst_n       ),
     .clk      ( clk24           ),
+    .start    ( cpu_start       ),
     .cen_in   ( cen6            ),
     .cen_out  ( cen_sub         ),
-    .gate     ( srom_wait_n     ),
+    .gate     (                 ),
     // cycle recovery
     .mreq_n   ( sub_mreq_n      ),
     .iorq_n   ( sub_iorq_n      ),

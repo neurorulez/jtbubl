@@ -21,6 +21,7 @@ module jtbubl_sound(
     input             rstn,   // from Main
     input             clk,
     input             cen3,   //  3   MHz
+    input             start,
 
     input             tokio,
     // Interface with main CPU
@@ -137,6 +138,7 @@ jtframe_ff u_flag(
 jtframe_sysz80 #(.RAM_AW(13)) u_cpu(
     .rst_n      ( snd_rstn    ),
     .clk        ( clk         ),
+    .start      ( start       ),
     .cen        ( cen3        ),
     .cpu_cen    (             ),
     .int_n      ( int_n       ),
