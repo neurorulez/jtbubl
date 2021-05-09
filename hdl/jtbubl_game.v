@@ -300,7 +300,6 @@ jtbubl_sound u_sound(
 );
 `else
 assign snd_cs   = 0;
-assign snd_ok   = 1;
 assign snd_addr = 15'd0;
 assign snd      = 16'd0;
 assign sample   = 0;

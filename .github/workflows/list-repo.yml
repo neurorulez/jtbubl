@@ -9,15 +9,15 @@ on:
 jobs:
 
   make_list:
-  
+
     runs-on: ubuntu-latest
-    
+
     container:
-      image: jotego/jtdock
+      image: jotego/jtdock:q17-go
       credentials:
         username: jotego
         password: ${{ secrets.DOCKER_LOGIN }}
-    
+
     steps:
       - name: check out
         uses: actions/checkout@v2
@@ -25,4 +25,4 @@ jobs:
           repository: jotego/jtbubil
       - name: list repo
         run: find .
-  
+
