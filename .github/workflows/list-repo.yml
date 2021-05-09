@@ -25,9 +25,13 @@ jobs:
         with:
           repository: jotego/jtbubl
           path: core
-      # - name: check out
-      #   uses: actions/checkout@v2
-      #   with:
-      #     repository: jotego/jtutil
+      - name: check out
+        uses: actions/checkout@v2
+        with:
+          repository: jotego/jtutil
+          path: jtutil
+      - name: get submodules
+        run: cd core; git submodule init; git submodule update
       - name: list repo
-        run: cd core; git submodule init; git submodule update; find .
+        run: find .
+
