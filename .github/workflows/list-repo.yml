@@ -1,6 +1,8 @@
 name: Docker Image CI
 
 on:
+  workflow_dispatch:
+
   push:
 
   pull_request:
@@ -27,4 +29,4 @@ jobs:
       #   with:
       #     repository: jotego/jtutil
       - name: list repo
-        run: find .
+        run: git submodule init; git submodule update; find .
