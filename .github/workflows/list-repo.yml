@@ -31,7 +31,7 @@ jobs:
           repository: jotego/jtutil
           path: jtutil
       - name: get submodules
-        run: cd core; git submodule init; git submodule update
+        run: cd core; git submodule init; git submodule update --init --recursive
       - name: list repo
         run: find .
 
