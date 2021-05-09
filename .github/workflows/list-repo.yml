@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: jotego/jtdock:q17-go
+      image: jotego/jtdock:jtutil
       credentials:
         username: jotego
         password: ${{ secrets.DOCKER_LOGIN }}
@@ -24,15 +24,11 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: jotego/jtbubl
-          path: core
-      - name: check out
-        uses: actions/checkout@v2
-        with:
-          repository: jotego/jtutil
-          token: ${{ secrets.JTUTIL }}
-          path: jtutil
+          path: git
       - name: get submodules
-        run: cd core; git submodule init; git submodule update --init --recursive
+        run: cd git; git submodule update --init --recursive --depth 1
       - name: list repo
         run: find .
+      - name: compile
+        run: source $JTUTIL/bin/jtutil.sh; jtcore bubl -mr
 
