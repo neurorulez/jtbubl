@@ -21,7 +21,10 @@ jobs:
       - name: check out
         uses: actions/checkout@v2
         with:
-          repository: jotego/jtbubil
+          repository: jotego/jtbubl
+      # - name: check out
+      #   uses: actions/checkout@v2
+      #   with:
+      #     repository: jotego/jtutil
       - name: list repo
         run: find .
-
