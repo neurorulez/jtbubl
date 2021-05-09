@@ -29,6 +29,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: jotego/jtutil
+          token: ${{ secrets.JTUTIL }}
           path: jtutil
       - name: get submodules
         run: cd core; git submodule init; git submodule update --init --recursive
